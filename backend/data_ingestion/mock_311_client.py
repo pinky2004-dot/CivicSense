@@ -1,14 +1,52 @@
 import random
 
-# In a real app, this would make an API call. For the hackathon, we simulate it.
 MOCK_REPORTS = [
-    {"id": 1, "text": "Huge pothole on the corner of Preston Rd and Glendenning Ln. Cars are swerving to avoid it."},
-    {"id": 2, "text": "The traffic lights at the main intersection of Frontier Pkwy are completely out. It's a major safety hazard."},
-    {"id": 3, "text": "Graffiti on the park bench near the splash pad."},
-    {"id": 4, "text": "Power lines are down behind city hall after that storm, sparks are flying."},
+    {"id": 7, "text": "REPORT: Streetlight flickering on Oakwood Dr near the elementary school."},
+    {"id": 8, "text": "HAZARD: Oil spill across two lanes on Main St near the shopping plaza, causing slippery conditions."},
+    {"id": 9, "text": "NUISANCE: Overflowing trash bins at the community park attracting stray animals."},
+    {"id": 10, "text": "EMERGENCY: Car accident at the intersection of Ridge Rd and Parker Rd. Multiple vehicles involved."},
+    {"id": 11, "text": "MAINTENANCE: Broken sprinkler head flooding part of the soccer field at the recreation center."},
+    {"id": 12, "text": "SAFETY: Pedestrian crosswalk paint has completely faded near the library."},
+    {"id": 13, "text": "REPORT: Tree limb blocking the sidewalk on Maple Ave."},
+    {"id": 14, "text": "HAZARD: Gas smell detected near Elm St apartments, fire department notified."},
+    {"id": 15, "text": "NUISANCE: Loud construction noise continuing past midnight on 2nd St."},
+    {"id": 16, "text": "EMERGENCY: Flash flooding reported under the bridge at Creekside Blvd."},
+    {"id": 17, "text": "MAINTENANCE: Playground swing set chains are rusted and unsafe."},
+    {"id": 18, "text": "SAFETY: Manhole cover missing near the high school parking lot."},
+    {"id": 19, "text": "REPORT: Dead deer on the side of the highway exit ramp."},
+    {"id": 20, "text": "HAZARD: Large crack forming on the pedestrian trail bridge in the nature reserve."},
+    {"id": 21, "text": "NUISANCE: Skateboarders blocking entrance of the grocery store plaza."},
+    {"id": 22, "text": "EMERGENCY: Fire hydrant knocked over by vehicle, water gushing into the street."},
+    {"id": 23, "text": "MAINTENANCE: Air conditioning not working inside the senior center."},
+    {"id": 24, "text": "SAFETY: School zone flashing signs not activating during morning hours."},
+    {"id": 25, "text": "REPORT: Faded lane markings on the roundabout at Sunset Blvd."},
+    {"id": 26, "text": "HAZARD: Downed tree blocking both lanes of traffic on Pine St after storm."},
+    {"id": 27, "text": "NUISANCE: Street performer using loud speakers late into the night at City Square."},
+    {"id": 28, "text": "EMERGENCY: Small brush fire spreading along the hiking trail behind Oak Creek."},
+    {"id": 29, "text": "MAINTENANCE: Elevator out of service at the downtown parking garage."},
+    {"id": 30, "text": "SAFETY: Guardrail missing along sharp curve on Mountain Rd."},
+    {"id": 31, "text": "REPORT: Heavy littering along the bike trail by the river."},
+    {"id": 32, "text": "HAZARD: Black ice forming on the overpass early in the morning."},
+    {"id": 33, "text": "NUISANCE: Barking dog complaints coming from residential area on Birch Ln."},
+    {"id": 34, "text": "EMERGENCY: Train crossing gate stuck in the down position, blocking traffic for 20 minutes."},
+    {"id": 35, "text": "MAINTENANCE: Broken water fountain at the public library."},
+    {"id": 36, "text": "SAFETY: Speed bump paint worn off, drivers not slowing down on Willowbrook Dr."},
+    {"id": 37, "text": "REPORT: Large beehive hanging from the bus stop shelter near downtown."},
+    {"id": 38, "text": "HAZARD: Exposed electrical wiring spotted at construction site without barriers."},
+    {"id": 39, "text": "NUISANCE: Teens loitering and leaving trash around the train station entrance."},
+    {"id": 40, "text": "EMERGENCY: Person trapped inside elevator at city hall, emergency services en route."},
+    {"id": 41, "text": "MAINTENANCE: Fountain in central plaza has stopped working."},
+    {"id": 42, "text": "SAFETY: Bicycle lane obstructed by parked vehicles near Oakridge Mall."},
+    {"id": 43, "text": "REPORT: Animal carcass spotted floating in the creek near Riverside Park."},
+    {"id": 44, "text": "HAZARD: Loose bricks on the retaining wall beside 5th St sidewalk."},
+    {"id": 45, "text": "NUISANCE: Illegal dumping reported in the alley behind Main St shops."},
+    {"id": 46, "text": "EMERGENCY: Gas leak suspected inside apartment complex, residents evacuating."},
+    {"id": 47, "text": "MAINTENANCE: Street sweeper skipped two blocks on Elmwood Ave this week."},
+    {"id": 48, "text": "SAFETY: Missing reflective markers on sharp curve of County Rd 14."},
+    {"id": 49, "text": "REPORT: Broken curb ramp making sidewalk inaccessible for wheelchairs."},
+    {"id": 50, "text": "HAZARD: Large sinkhole forming in residential street cul-de-sac."},
 ]
 
 def fetch_new_reports():
     """Simulates fetching a new report from a 311 system."""
-    # Return one random report to simulate a new event.
     return [random.choice(MOCK_REPORTS)]
