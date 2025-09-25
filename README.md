@@ -35,34 +35,6 @@ Municipal management of civic issuesâ€”potholes, power outages, public hazardsâ€
 
 The system is designed as a **stateful, multi-agent application**. This is a departure from simple stateless scripts, allowing the system to maintain a memory of events and perform complex analysis over time.
 
-```mermaid
-graph TD
-    subgraph External Sources
-        A[Twitter/X API]
-        B[Mock 311 Reports]
-    end
-
-    subgraph Backend Core (FastAPI)
-        C[Polling Task] --> D{Observer Agent};
-        D --> E[City State Manager];
-        F[Analysis Task] --> G{Analyst Agent};
-        G --> E;
-        E --> G;
-        E --> H{Dispatcher Agent};
-        H --> I{Communicator Agent};
-        I --> J[Twilio API];
-        E --> K[API Endpoint /api/state];
-    end
-    
-    subgraph Frontend (React)
-        L[React UI] --> K;
-    end
-    
-    A --> C;
-    B --> C;
-    K --> L;
-```
-
 ### Components
 
 * **Data Ingestion**: A background polling task (`Polling Task`) runs continuously to fetch new data from external sources.
