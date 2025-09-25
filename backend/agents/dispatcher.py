@@ -1,19 +1,17 @@
-from tools.twilio_tool import send_sms_alert
-
-def process_issue(analysis: dict):
+def process_event(event_type: str, data: dict) -> str | None:
     """
-    Processes the structured analysis from the Observer
-    and decides on the appropriate action.
+    Processes an event (a new issue or insight) and returns a communication task if needed.
     """
-    if not analysis:
-        print("Dispatcher received no analysis to process.")
-        return
-
-    print(f"Dispatcher processing issue: {analysis}")
-    priority = analysis.get("priority", "Low")
-
-    if priority == "High":
-        print("High priority issue detected. Dispatching SMS alert.")
-        send_sms_alert(analysis)
-    else:
-        print(f"'{priority}' priority issue logged. No alert dispatched.")
+    print(f"Dispatcher received event: {event_type} with data: {data}")
+    
+    priority = data.get("priority", "Low")
+    
+    if event_type == "NEW_ISSUE" and priority == "High":
+        return "SEND_HIGH_PRIORITY_SMS"
+        
+    if event_type == "NEW_INSIGHT":
+        # For now, I don't have an action for insights, but I could add one here.
+        # For example: return "DRAFT_WEEKLY_SUMMARY"
+        pass
+        
+    return None # No action needed
