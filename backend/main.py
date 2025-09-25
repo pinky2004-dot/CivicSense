@@ -1,82 +1,82 @@
 import asyncio
-from fastapi import FastAPI, BackgroundTasks
-from typing import List
+from fastapi import FastAPI
+import random
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import our custom modules
+# Import new modules and state
+from state import city_state
 from data_ingestion.mock_311_client import fetch_new_reports
 from data_ingestion.twitter_client import fetch_new_tweets
 from agents.observer import analyze_report
-from agents.dispatcher import process_issue
+from agents.analyst import find_insights
+from agents.dispatcher import process_event  # We will create this next
+from agents.communicator import handle_communication
 
-# Initialize FastAPI app
 app = FastAPI(title="CivicSense AI Backend")
+origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
-# Define the list of allowed origins (your frontend's address)
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
+# I'll move the dispatcher logic here to act as a central hub
+def dispatch(event_type: str, data: dict):
+    """Central dispatch function to route events."""
+    task = process_event(event_type, data)
+    if task:
+        handle_communication(task, data)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"], # Allows all methods
-    allow_headers=["*"], # Allows all headers
-)
-
-# In-memory "database" to store processed issues for the frontend
-processed_issues_db: List[dict] = []
-
-async def process_new_data():
-    """The core background task that runs the AI pipeline."""
-    print("Checking for new data...")
-
-    # 2. CALL THE NEW FUNCTION AND COMBINE DATA
-    all_reports = []
-    # We'll use a simple try-except block for robustness
-    try:
-        all_reports.extend(fetch_new_reports())
-    except Exception as e:
-        print(f"Error fetching 311 reports: {e}")
-
-    try:
-        all_reports.extend(fetch_new_tweets())
-    except Exception as e:
-        print(f"Error fetching tweets: {e}")
-
-    for report in all_reports:
-        # Important: We now check for a unique ID to avoid duplicates
-        if any(p.get("original_id") == report["id"] for p in processed_issues_db):
-            continue
-
-        print(f"New report found (ID: {report['id']}): {report['text']}")
-        analysis = analyze_report(report['text'])
-
-        if analysis:
-            # Add original ID and text for context and duplicate checking
-            analysis["original_id"] = report["id"]
-            analysis["original_text"] = report["text"]
-            process_issue(analysis)
-            processed_issues_db.append(analysis)
-
-async def periodic_task():
-    """Runs the data processing task every N seconds."""
+# --- Background Tasks ---
+async def poll_for_new_data():
+    """Task 1: Runs frequently to fetch new reports."""
     while True:
-        await process_new_data()
-        await asyncio.sleep(70) # Poll for new data every 70 seconds
+        print("Polling for new reports...")
+        all_reports = fetch_new_reports() + fetch_new_tweets()
+        
+        for report in all_reports:
+            # Check if issue already exists before expensive LLM call
+            if any(p.get("original_id") == report["id"] for p in city_state.active_issues):
+                continue
+
+            print(f"New report found (ID: {report['id']}). Sending to Observer.")
+            analysis = analyze_report(report['text'])
+            if analysis:
+                base_location = [33.3240, -96.7828]
+                analysis["location"] = [
+                    base_location[0] + (random.random() - 0.5) * 0.1,
+                    base_location[1] + (random.random() - 0.5) * 0.1,
+                ]
+                analysis["original_id"] = report["id"]
+                city_state.add_issue(analysis)
+                dispatch("NEW_ISSUE", analysis) # Dispatch the new issue immediately
+        
+        await asyncio.sleep(70)
+
+async def run_analysis():
+    """Task 2: Runs less frequently to find insights."""
+    while True:
+        print("Running analysis on active issues...")
+        new_insights = find_insights(city_state.active_issues)
+        
+        for insight in new_insights:
+            # Avoid adding duplicate insights
+            if not any(i.get("title") == insight["title"] for i in city_state.generated_insights):
+                city_state.add_insight(insight)
+                dispatch("NEW_INSIGHT", insight) # Dispatch the new insight
+        
+        await asyncio.sleep(300) # Run analysis every 5 minutes
 
 @app.on_event("startup")
 async def startup_event():
-    """Start the background task when the server starts."""
-    asyncio.create_task(periodic_task())
+    """Starts the background tasks when the server starts."""
+    asyncio.create_task(poll_for_new_data())
+    asyncio.create_task(run_analysis())
 
 @app.get("/")
 def read_root():
-    return {"status": "CivicSense AI Backend is running."}
+    return {"status": "CivicSense AI Agentic System is running."}
 
-@app.get("/api/issues")
-def get_issues() -> List[dict]:
-    """API endpoint for the frontend to fetch processed issues."""
-    return processed_issues_db
+@app.get("/api/state")
+def get_state():
+    """API endpoint for the frontend to fetch the entire city state."""
+    return {
+        "active_issues": city_state.active_issues,
+        "generated_insights": city_state.generated_insights
+    }
