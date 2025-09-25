@@ -1,23 +1,31 @@
 from langchain_community.chat_models import ChatOllama
 from langchain_core.output_parsers import JsonOutputParser
 from langchain_core.prompts import PromptTemplate
+from langchain_core.pydantic_v1 import BaseModel, Field
 
 # Initialize the LLM
-# Make sure Ollama is running with the llama3 model
 llm = ChatOllama(model="llama3", format="json")
 
-# Define the structured output we want
-parser = JsonOutputParser()
+# Define a Pydantic model for the expected output
+class IssueAnalysis(BaseModel):
+    issue_type: str = Field(description="A short category for the issue, e.g., 'Power Outage', 'Pothole'.")
+    summary: str = Field(description="A concise, one-sentence summary of the report.")
+    priority: str = Field(description="The assessed priority: 'Low', 'Medium', or 'High'.")
 
-# Create a prompt template that instructs the model
+# Pass the Pydantic model to the parser to enforce the structure
+parser = JsonOutputParser(pydantic_object=IssueAnalysis)
+
+# Create a more specific prompt template
 prompt = PromptTemplate(
-    template="""You are an expert civic issue analyst.
-    Analyze the following report from a citizen and extract key information.
-    The priority must be one of: 'Low', 'Medium', 'High'.
-    A 'High' priority indicates a direct and immediate threat to public safety (e.g., power lines down, major traffic failure).
-    A 'Medium' priority is a significant but not life-threatening issue (e.g., large pothole on a major road).
-    A 'Low' priority is a minor issue (e.g., graffiti).
+    template="""You are an expert civic issue analyst. Your task is to analyze a report and respond ONLY with a valid JSON object.
+    
+    The JSON object must have these exact keys: "issue_type", "summary", and "priority".
+    
+    - "issue_type": A short category for the issue (e.g., 'Power Outage', 'Pothole', 'Flooding').
+    - "summary": A concise, one-sentence summary of the report.
+    - "priority": Must be one of 'Low', 'Medium', or 'High'. A 'High' priority indicates a direct and immediate threat to public safety.
 
+    Analyze the following report:
     Report: "{report_text}"
 
     {format_instructions}
@@ -26,13 +34,13 @@ prompt = PromptTemplate(
     partial_variables={"format_instructions": parser.get_format_instructions()},
 )
 
-# Create the processing chain by piping the components together
-# This is the modern way to use LangChain (LCEL)
+# The chain
 chain = prompt | llm | parser
 
 def analyze_report(text: str) -> dict:
     """Analyzes a raw text report and returns a structured dictionary."""
     try:
+        # The .dict() method is needed if I use a Pydantic parser
         result = chain.invoke({"report_text": text})
         return result
     except Exception as e:
