@@ -1,4 +1,4 @@
-# CivicSense
+<h1 align="center">CivicSense</h1>
 
 *A stateful, multi-agent AI system for proactive civic issue detection and analysis.*
 
