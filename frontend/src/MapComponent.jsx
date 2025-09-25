@@ -1,9 +1,22 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { highPriorityIcon, mediumPriorityIcon, lowPriorityIcon } from './icons';
 
-// Celina, TX coordinates
 const position = [33.3240, -96.7828];
+
+const getPriorityIcon = (priority) => {
+  switch (priority?.toLowerCase()) {
+    case 'high':
+      return highPriorityIcon;
+    case 'medium':
+      return mediumPriorityIcon;
+    case 'low':
+      return lowPriorityIcon;
+    default:
+      return lowPriorityIcon;
+  }
+};
 
 const MapComponent = ({ issues }) => {
   return (
@@ -12,19 +25,22 @@ const MapComponent = ({ issues }) => {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      {/* We will map over the issues and create markers here */}
-      {issues.map((issue, index) => (
-        <Marker key={index} position={[
-            // For the demo, we'll generate slightly random positions around Celina
-            position[0] + (Math.random() - 0.5) * 0.1,
-            position[1] + (Math.random() - 0.5) * 0.1,
-        ]}>
-          <Popup>
-            <b>{issue.priority} Priority</b><br />
-            {issue.summary || issue.issue || issue.description || 'No summary available.'}
-          </Popup>
-        </Marker>
-      ))}
+      {issues.map((issue) => {
+        const summary = issue.summary || issue.issue || issue.description || issue.details || 'No summary available.';
+        
+        return (
+          <Marker 
+            key={issue.original_id} 
+            position={issue.location}
+            icon={getPriorityIcon(issue.priority)}
+          >
+            <Popup>
+              <div style={{fontWeight: 'bold', textTransform: 'uppercase'}}>{issue.priority || 'N/A'} Priority</div>
+              {summary}
+            </Popup>
+          </Marker>
+        );
+      })}
     </MapContainer>
   );
 };
