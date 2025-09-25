@@ -1,38 +1,55 @@
-// /frontend/src/App.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MapComponent from './MapComponent';
-import './App.css'; // We'll create this file next for styling
+import InsightsPanel from './InsightsPanel'; // Import our new component
+import './App.css';
 
 function App() {
+  // I now need to manage two pieces of state
   const [issues, setIssues] = useState([]);
+  const [insights, setInsights] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchIssues = async () => {
+    const fetchState = async () => {
       try {
-        const response = await axios.get('http://127.0.0.1:8000/api/issues');
-        setIssues(response.data);
-        setError(null); // Clear any previous errors
+        // API endpoint /api/state
+        const response = await axios.get('http://127.0.0.1:8000/api/state');
+
+        console.log("API Response Data:", response.data);
+        
+        // Set both issues and insights from the response object
+        setIssues(response.data.active_issues || []);
+        setInsights(response.data.generated_insights || []);
+        
+        setError(null);
       } catch (err) {
         console.error("Error fetching data from backend:", err);
         setError("Could not connect to the CivicSense AI backend. Is it running?");
       }
     };
 
-    fetchIssues(); // Fetch immediately on load
-    const intervalId = setInterval(fetchIssues, 15000); // Then poll every 15 seconds
+    fetchState(); // Fetch immediately on load
+    const intervalId = setInterval(fetchState, 15000); // Poll every 15 seconds
 
-    return () => clearInterval(intervalId); // Cleanup on component unmount
+    return () => clearInterval(intervalId);
   }, []);
+
+  console.log("Current Component State:", { issues, insights });
 
   return (
     <div className="App">
       <div className="header">
-        <h1>CivicSense AI - Live Dashboard</h1>
-        <p>Real-time Civic Issue Monitoring for Celina, TX</p>
+        <h1>CivicSense - Live Dashboard</h1>
+        <p>Real-time Civic Issue Monitoring</p>
       </div>
+      
+      {/* Add the new InsightsPanel to UI */}
+      <InsightsPanel insights={insights} />
+      
       {error && <div className="error-banner">{error}</div>}
+      
+      {/* The MapComponent now only receives the issues */}
       <MapComponent issues={issues} />
     </div>
   );
